@@ -506,10 +506,10 @@ class InfluxStorage {
    * Import and clear pending bars
    *
    * @returns {Promise<{
-      from: number,
-      to: number,
-      markets: string[],
-    }>}
+   *   from: number,
+   *   to: number,
+   *   markets: string[],
+   * }>}
    * @memberof InfluxStorage
    */
   async importPendingBars() {

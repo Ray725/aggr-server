@@ -7,12 +7,8 @@
 .env
 .env.local
 
-# app config
-*.config.json
-
 # local files
 node_modules/
-config.json
 
 # storage
 

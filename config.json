@@ -36,12 +36,36 @@
     "KRAKEN:ETH/USD",
     "HUOBI:ethusdt",
     "HUOBI:ETH-USD",
-    "BINANCE_FUTURES:ethusd_perp"
+    "BINANCE_FUTURES:ethusd_perp",
+    "BINANCE:axsusdt",
+    "BITGET:AXSUSDT",
+    "BITSTAMP:axsusd",
+    "COINBASE:AXS-USD",
+    "COINBASE:AXS-USDT",
+    "KRAKEN:AXS/USD",
+    "KUCOIN:AXS-USDT",
+    "MEXC:AXSUSDT",
+    "OKEX:AXS-USD",
+    "OKEX:AXS-USDT",
+    "BYBIT:AXSUSDT-SPOT",
+    "BINANCE_FUTURES:axsusdt",
+    "BINANCE_FUTURES:axsusd_perp",
+    "BITFINEX:AXSF0:USTF0",
+    "BITGET:AXSUSDT_UMCBL",
+    "BITMEX:AXSUSD",
+    "BITMEX:AXS_USDT",
+    "BITUNIX:AXSUSDT",
+    "COINBASE:AXS-PERP-INTX",
+    "KRAKEN:PF_AXSUSD",
+    "KUCOIN:AXSUSDTM",
+    "MEXC:AXS_USDT",
+    "OKEX:AXS-USDT-SWAP",
+    "BYBIT:AXSUSDT"
   ],
   "backupInterval": 5000,
   "collect": true,
   "storage": [
-    "files"
+    "influx"
   ],
   "origin": ".*",
   "filesLocation": "./data"
