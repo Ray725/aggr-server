@@ -3,10 +3,6 @@
 .vscode
 !**/.gitkeep
 
-# env files
-.env
-.env.local
-
 # local files
 node_modules/
 
