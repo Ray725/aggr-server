@@ -32,7 +32,9 @@ const indexes = (module.exports.indexes = [])
     const product = parseMarket(exchange, pair)
 
     if (!product) {
-      console.warn(`[registerIndexes] couldn't register ${market} on an index (couldn't be parsed)`)
+      console.warn(
+        `[registerIndexes] couldn't register ${market} on an index (couldn't be parsed)`
+      )
       continue
     }
 
@@ -40,7 +42,9 @@ const indexes = (module.exports.indexes = [])
       config.indexExchangeBlacklist.indexOf(product.exchange) !== -1 ||
       config.indexQuoteWhitelist.indexOf(product.quote) === -1
     ) {
-      console.warn(`[registerIndexes] won't register ${market} on an index (exchange or quote blacklisted)`)
+      console.warn(
+        `[registerIndexes] won't register ${market} on an index (exchange or quote blacklisted)`
+      )
       continue
     }
 

@@ -2,7 +2,6 @@ const axios = require('axios')
 const fs = require('fs')
 const { ensureDirectoryExists } = require('../helper')
 
-
 const stablecoins = [
   'USDT',
   'USDC',

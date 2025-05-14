@@ -188,18 +188,18 @@ class Bitmart extends Exchange {
     const liquidations = json.data.filter(trade => trade.type === 1)
 
     if (liquidations.length) {
-      this.emitLiquidations(api.id, liquidations.map(liquidation => this.formatTrade(liquidation)))
+      this.emitLiquidations(
+        api.id,
+        liquidations.map(liquidation => this.formatTrade(liquidation))
+      )
     }
 
     const trades = json.data
       .filter(trade => !trade.type || trade.type === 8)
       .map(trade => this.formatTrade(trade))
-    
+
     if (trades.length) {
-      this.emitTrades(
-        api.id,
-        trades
-      )
+      this.emitTrades(api.id, trades)
     }
   }
 
@@ -207,7 +207,7 @@ class Bitmart extends Exchange {
     if (this.specs[range.pair]) {
       return 0
     }
-    
+
     // limit to 50 trades and no way to go back further
     let endpoint =
       this.endpoints.SPOT.RECENT_TRADES + `?symbol=${range.pair.toUpperCase()}`
@@ -235,9 +235,7 @@ class Bitmart extends Exchange {
           totalRecovered += trades.length
 
           console.log(
-            `[${this.id}.recoverMissingTrades] +${trades.length} ${
-              range.pair
-            }`
+            `[${this.id}.recoverMissingTrades] +${trades.length} ${range.pair}`
           )
         }
 

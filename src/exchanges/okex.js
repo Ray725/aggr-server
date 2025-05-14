@@ -212,9 +212,11 @@ class Okex extends Exchange {
   getLiquidationsUrl(range) {
     // after query param = before
     // (get the 100 trades preceding endTimestamp)
-    return `${this.endpoints.LIQUIDATIONS}?instId=${range.pair
-      }&instType=SWAP&uly=${range.pair.replace('-SWAP', '')}&state=filled&after=${range.to
-      }`
+    return `${this.endpoints.LIQUIDATIONS}?instId=${
+      range.pair
+    }&instType=SWAP&uly=${range.pair.replace('-SWAP', '')}&state=filled&after=${
+      range.to
+    }`
   }
 
   /**
@@ -261,10 +263,10 @@ class Okex extends Exchange {
   async getMissingTrades(range, totalRecovered = 0, first = true) {
     if (this.types[range.pair] !== 'SPOT' && first) {
       try {
-        const liquidations = await this.fetchAllLiquidationOrders({ ...range });
+        const liquidations = await this.fetchAllLiquidationOrders({ ...range })
         console.log(
           `[${this.id}.recoverMissingTrades] +${liquidations.length} liquidations for ${range.pair}`
-        );
+        )
 
         if (liquidations.length) {
           this.emitLiquidations(
@@ -272,17 +274,17 @@ class Okex extends Exchange {
             liquidations.map(liquidation =>
               this.formatLiquidation(liquidation, range.pair)
             )
-          );
+          )
         }
       } catch (error) {
         console.error(
           `[${this.id}] failed to get missing liquidations on ${range.pair}:`,
           error.message
-        );
+        )
       }
     }
 
-    const endpoint = `https://www.okx.com/api/v5/market/history-trades?instId=${range.pair}&type=2&limit=100&after=${range.to}`;
+    const endpoint = `https://www.okx.com/api/v5/market/history-trades?instId=${range.pair}&type=2&limit=100&after=${range.to}`
 
     try {
       const response = await this.retryWithDelay(
@@ -290,48 +292,49 @@ class Okex extends Exchange {
         5, // Retry up to 5 times
         1, // Start with a multiplier of 1
         range
-      );
+      )
 
       if (response.data.data.length) {
         const trades = response.data.data
           .filter(
             trade =>
-              Number(trade.ts) > range.from &&
-              Number(trade.ts) < range.to
+              Number(trade.ts) > range.from && Number(trade.ts) < range.to
           )
-          .map(trade => this.formatTrade(trade));
+          .map(trade => this.formatTrade(trade))
 
         if (trades.length) {
-          this.emitTrades(null, trades);
-          totalRecovered += trades.length;
-          range.to = trades[trades.length - 1].timestamp;
+          this.emitTrades(null, trades)
+          totalRecovered += trades.length
+          range.to = trades[trades.length - 1].timestamp
         }
 
-        const remainingMissingTime = range.to - range.from;
+        const remainingMissingTime = range.to - range.from
 
         if (trades.length) {
           console.log(
-            `[${this.id}.recoverMissingTrades] +${trades.length} ${range.pair
+            `[${this.id}.recoverMissingTrades] +${trades.length} ${
+              range.pair
             } ... but there's more (${getHms(remainingMissingTime)} remaining)`
-          );
+          )
           return this.waitBeforeContinueRecovery().then(() =>
             this.getMissingTrades(range, totalRecovered, false)
-          );
+          )
         } else {
           console.log(
-            `[${this.id}.recoverMissingTrades] +${trades.length} ${range.pair
+            `[${this.id}.recoverMissingTrades] +${trades.length} ${
+              range.pair
             } (${getHms(remainingMissingTime)} remaining)`
-          );
+          )
         }
       }
 
-      return totalRecovered;
+      return totalRecovered
     } catch (err) {
       console.error(
         `[${this.id}] failed to get missing trades on ${range.pair} after retries:`,
         err.message
-      );
-      return totalRecovered;
+      )
+      return totalRecovered
     }
   }
 
@@ -345,22 +348,24 @@ class Okex extends Exchange {
    */
   async retryWithDelay(fn, retries, multiplier = 1, range = {}) {
     try {
-      return await fn();
+      return await fn()
     } catch (err) {
       if (retries > 0) {
         console.warn(
-          `[${this.id}] Retrying with delay (${range.pair || 'unknown pair'}) attempt ${multiplier
-          }...`
-        );
-        await this.waitBeforeContinueRecovery(multiplier);
-        return this.retryWithDelay(fn, retries - 1, multiplier + 1, range);
+          `[${this.id}] Retrying with delay (${
+            range.pair || 'unknown pair'
+          }) attempt ${multiplier}...`
+        )
+        await this.waitBeforeContinueRecovery(multiplier)
+        return this.retryWithDelay(fn, retries - 1, multiplier + 1, range)
       }
       console.error(
-        `[${this.id}] Exceeded retry limit for ${range.pair || 'unknown pair'
+        `[${this.id}] Exceeded retry limit for ${
+          range.pair || 'unknown pair'
         }:`,
         err.message
-      );
-      throw err; // Propagate the error after exceeding retries
+      )
+      throw err // Propagate the error after exceeding retries
     }
   }
 }

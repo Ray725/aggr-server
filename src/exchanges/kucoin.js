@@ -35,7 +35,6 @@ class Kucoin extends Exchange {
         return this.token.value
       }
 
-
       this.promiseOfToken = this.fetchToken().finally(() => {
         this.promiseOfToken = null
       })
@@ -47,23 +46,18 @@ class Kucoin extends Exchange {
   async fetchToken() {
     const url = 'https://api.kucoin.com/api/v1/bullet-public'
     try {
-      const {data} = await axios.post(url)
+      const { data } = await axios.post(url)
       this.endpoints.WS = 'wss://ws-api.kucoin.com/endpoint'
-  
+
       this.token = {
         timestamp: Date.now(),
         value:
-          data.data.instanceServers[0].endpoint +
-          '?token=' +
-          data.data.token
+          data.data.instanceServers[0].endpoint + '?token=' + data.data.token
       }
-  
+
       return this.token.value
-    
     } catch (error) {
-      console.error(
-        `[${this.id}/fetchToken] ${error.message}`
-      )
+      console.error(`[${this.id}/fetchToken] ${error.message}`)
       await sleep(1000)
       return this.fetchToken()
     }

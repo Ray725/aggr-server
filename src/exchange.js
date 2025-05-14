@@ -177,9 +177,7 @@ class Exchange extends EventEmitter {
       this.on('connected', connectedEventHandler)
 
       timeout = setTimeout(() => {
-        console.error(
-          `[${this.id}/link] ${pair} connected event never fired`
-        )
+        console.error(`[${this.id}/link] ${pair} connected event never fired`)
         connectedEventHandler(pair)
       }, 10000)
     })
@@ -278,7 +276,10 @@ class Exchange extends EventEmitter {
           console.error(`[${this.id}] error message intercepted\n`, event.data)
         }
       } catch (error) {
-        console.error(`[${this.id}] failed to parse ws message\n`, error.message)
+        console.error(
+          `[${this.id}] failed to parse ws message\n`,
+          error.message
+        )
       }
     }
 
@@ -514,7 +515,13 @@ class Exchange extends EventEmitter {
 
   registerRangeForRecovery(range) {
     console.log(
-      `[${this.id}.registerRangeForRecovery] register range (${range.pair}: ${new Date(+range.from).toISOString()}, ${new Date(+range.to).toISOString()}, ${getHms(range.from - range.to)}, ${range.missEstimate} estimated miss)`
+      `[${this.id}.registerRangeForRecovery] register range (${
+        range.pair
+      }: ${new Date(+range.from).toISOString()}, ${new Date(
+        +range.to
+      ).toISOString()}, ${getHms(range.from - range.to)}, ${
+        range.missEstimate
+      } estimated miss)`
     )
 
     this.recoveryRanges.push(range)
@@ -626,7 +633,11 @@ class Exchange extends EventEmitter {
             continue
           } else {
             console.log(
-              `[${this.id}.registerRangeForRecovery] shrinked range (${nextRange.pair}, #${i}: ${new Date(+nextRange.from).toISOString()}, ${new Date(+nextRange.to).toISOString()})`
+              `[${this.id}.registerRangeForRecovery] shrinked range (${
+                nextRange.pair
+              }, #${i}: ${new Date(+nextRange.from).toISOString()}, ${new Date(
+                +nextRange.to
+              ).toISOString()})`
             )
           }
         }
@@ -965,15 +976,14 @@ class Exchange extends EventEmitter {
 
     this.keepAliveIntervals[api.id] = setInterval(() => {
       if (api.readyState === WebSocket.OPEN) {
-        const message = typeof payload === 'function'
-        ? JSON.stringify(payload())
-        : typeof payload === 'string'
-        ? payload
-        : JSON.stringify(payload)
+        const message =
+          typeof payload === 'function'
+            ? JSON.stringify(payload())
+            : typeof payload === 'string'
+            ? payload
+            : JSON.stringify(payload)
 
-        api.send(
-          message
-        )
+        api.send(message)
       }
     }, every)
   }
@@ -1085,12 +1095,12 @@ class Exchange extends EventEmitter {
    * @returns {Promise<void>}
    */
   waitBeforeContinueRecovery(multiplier = 1) {
-    const delay = config.recoveryRequestDelay * multiplier;
+    const delay = config.recoveryRequestDelay * multiplier
     if (!delay) {
-      return Promise.resolve();
+      return Promise.resolve()
     }
 
-    return sleep(delay);
+    return sleep(delay)
   }
 }
 

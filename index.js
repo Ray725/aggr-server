@@ -114,9 +114,7 @@ if (process.env.pmx) {
 
     const [market, from, to] = params.split(' ')
     const [id, pair] = market.match(/([^:]*):(.*)/).slice(1, 3)
-    const exchange = server.exchanges.find(
-      e => e?.id === id
-    )
+    const exchange = server.exchanges.find(e => e?.id === id)
 
     if (!exchange) {
       reply(`Unknown exchange ${id}`)
@@ -134,7 +132,9 @@ if (process.env.pmx) {
         /**
          * @type {FilesStorage}
          */
-        const fileStorage = server.storages.find(s => s.constructor.name === 'FilesStorage')
+        const fileStorage = server.storages.find(
+          s => s.constructor.name === 'FilesStorage'
+        )
 
         if (fileStorage) {
           fileStorage.clearRange(market, range.from, range.to)

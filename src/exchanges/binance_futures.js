@@ -182,8 +182,9 @@ class BinanceFutures extends Exchange {
 
   getMissingTrades(range, totalRecovered = 0) {
     const startTime = range.from
-    let endpoint = `?symbol=${range.pair.toUpperCase()}&startTime=${startTime + 1
-      }&endTime=${range.to}&limit=1000`
+    let endpoint = `?symbol=${range.pair.toUpperCase()}&startTime=${
+      startTime + 1
+    }&endTime=${range.to}&limit=1000`
     if (this.dapi[range.pair]) {
       endpoint = 'https://dapi.binance.com/dapi/v1/aggTrades' + endpoint
     } else {
@@ -200,7 +201,7 @@ class BinanceFutures extends Exchange {
               ...this.formatTrade(trade, range.pair),
               count: trade.l - trade.f + 1
             }))
-          
+
           if (trades.length) {
             this.emitTrades(null, trades)
 
@@ -212,7 +213,8 @@ class BinanceFutures extends Exchange {
 
           if (trades.length) {
             console.log(
-              `[${this.id}.recoverMissingTrades] +${trades.length} ${range.pair
+              `[${this.id}.recoverMissingTrades] +${trades.length} ${
+                range.pair
               } ... but theres more (${getHms(remainingMissingTime)} remaining)`
             )
 
@@ -221,7 +223,8 @@ class BinanceFutures extends Exchange {
             )
           } else {
             console.log(
-              `[${this.id}.recoverMissingTrades] +${trades.length} ${range.pair
+              `[${this.id}.recoverMissingTrades] +${trades.length} ${
+                range.pair
               } (${getHms(remainingMissingTime)} remaining)`
             )
           }
@@ -287,7 +290,8 @@ class BinanceFutures extends Exchange {
     }
 
     console.log(
-      `[${this.id}.liquidationApi] ${unsubscribe ? 'un' : ''}subscribing ${unsubscribe ? 'from' : 'to'
+      `[${this.id}.liquidationApi] ${unsubscribe ? 'un' : ''}subscribing ${
+        unsubscribe ? 'from' : 'to'
       } ${pair}`
     )
 

@@ -5,7 +5,6 @@ require('dotenv').config({
   override: true
 })
 
-
 console.log(`[init] reading config.json...`)
 
 /* Default configuration (its not ok to change here!, use config.json.)
@@ -232,10 +231,7 @@ try {
   configPath = path.resolve(__dirname, '../' + configPath)
   const configExamplePath = path.resolve(__dirname, '../config.json.example')
 
-  if (
-    !fs.existsSync(configPath) &&
-    fs.existsSync(configExamplePath)
-  ) {
+  if (!fs.existsSync(configPath) && fs.existsSync(configExamplePath)) {
     fs.copyFileSync(configExamplePath, configPath)
   }
 
@@ -280,11 +276,11 @@ if (process.env.PUBLIC_VAPID_KEY && process.env.PRIVATE_VAPID_KEY) {
   if (!config.publicVapidKey) {
     config.publicVapidKey = process.env.PUBLIC_VAPID_KEY
   }
-  
+
   if (!config.privateVapidKey) {
     config.privateVapidKey = process.env.PRIVATE_VAPID_KEY
   }
-} 
+}
 
 /* Validate storage
  */

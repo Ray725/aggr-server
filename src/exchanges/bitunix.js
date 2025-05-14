@@ -1,4 +1,4 @@
-const Exchange = require("../exchange")
+const Exchange = require('../exchange')
 
 class Bitunix extends Exchange {
   constructor() {
@@ -110,10 +110,14 @@ class Bitunix extends Exchange {
   }
 
   onApiCreated(api) {
-    this.startKeepAlive(api, () => ({
-      op: 'ping',
-      ping: Math.round(+new Date() / 1000)
-    }), 20000)
+    this.startKeepAlive(
+      api,
+      () => ({
+        op: 'ping',
+        ping: Math.round(+new Date() / 1000)
+      }),
+      20000
+    )
   }
 
   onApiRemoved(api) {

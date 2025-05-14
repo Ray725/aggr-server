@@ -69,9 +69,7 @@ class Bybit extends Exchange {
 
     const isSpot = this.types[pair] === 'spot'
     const realPair = isSpot ? pair.replace(SPOT_PAIR_REGEX, '') : pair
-    const topics = [
-      `publicTrade.${realPair}`,
-    ]
+    const topics = [`publicTrade.${realPair}`]
 
     if (!isSpot) {
       topics.push(`allLiquidation.${realPair}`)
@@ -79,7 +77,7 @@ class Bybit extends Exchange {
 
     api.send(
       JSON.stringify({
-        "op": "subscribe",
+        op: 'subscribe',
         args: topics
       })
     )
@@ -97,9 +95,7 @@ class Bybit extends Exchange {
 
     const isSpot = this.types[pair] === 'spot'
     const realPair = isSpot ? pair.replace(SPOT_PAIR_REGEX, '') : pair
-    const topics = [
-      `publicTrade.${realPair}`,
-    ]
+    const topics = [`publicTrade.${realPair}`]
 
     if (!isSpot) {
       topics.push(`allLiquidation.${realPair}`)
@@ -107,7 +103,7 @@ class Bybit extends Exchange {
 
     api.send(
       JSON.stringify({
-        "op": "unsubscribe",
+        op: 'unsubscribe',
         args: topics
       })
     )
@@ -177,8 +173,12 @@ class Bybit extends Exchange {
     const type = this.types[range.pair]
     const isSpot = type === 'spot'
     const limit = isSpot ? 60 : 1000
-    const realPair = isSpot ? range.pair.replace(SPOT_PAIR_REGEX, '') : range.pair
-    const endpoint = `${RECENT_TRADE_REST}?category=${this.types[range.pair]}&symbol=${realPair}&limit=${limit}`
+    const realPair = isSpot
+      ? range.pair.replace(SPOT_PAIR_REGEX, '')
+      : range.pair
+    const endpoint = `${RECENT_TRADE_REST}?category=${
+      this.types[range.pair]
+    }&symbol=${realPair}&limit=${limit}`
 
     return axios
       .get(endpoint)
@@ -186,13 +186,18 @@ class Bybit extends Exchange {
         if (response.data.result.list.length) {
           const trades = response.data.result.list
             .filter(trade => trade.time > range.from && trade.time <= range.to)
-            .map(trade => this.formatTrade({
-              T: trade.time,
-              s: trade.symbol,
-              p: trade.price,
-              v: trade.size,
-              S: trade.side,
-            }, isSpot))
+            .map(trade =>
+              this.formatTrade(
+                {
+                  T: trade.time,
+                  s: trade.symbol,
+                  p: trade.price,
+                  v: trade.size,
+                  S: trade.side
+                },
+                isSpot
+              )
+            )
 
           if (trades.length) {
             this.emitTrades(null, trades)
@@ -203,14 +208,13 @@ class Bybit extends Exchange {
 
           const remainingMissingTime = range.to - range.from
 
-          if (
-            trades.length &&
-            remainingMissingTime > 500
-          ) {
+          if (trades.length && remainingMissingTime > 500) {
             console.log(
               `[${this.id}.recoverMissingTrades] +${trades.length} ${
                 range.pair
-              } ... and should be more (${getHms(remainingMissingTime)} remaining)`
+              } ... and should be more (${getHms(
+                remainingMissingTime
+              )} remaining)`
             )
           } else {
             console.log(
