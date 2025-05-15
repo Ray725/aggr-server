@@ -1,0 +1,13 @@
+{
+    "debug": false,
+    "port": 3000,
+    "pairs": [],
+    "backupInterval": 5000,
+    "collect": false,
+    "api": true,
+    "storage": [
+      "influx"
+    ],
+    "origin": ".*",
+    "filesLocation": "./data"
+}
