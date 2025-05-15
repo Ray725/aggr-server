@@ -1,9 +1,8 @@
 [tools]
 node = "20.5.0"
-npm = "9.8.0"
 
 [tasks.run_influx]
-run = "docker-compose -f docker/docker-compose.yml up influx"
+run = "sudo docker-compose -f docker/docker-compose.yml up influx"
 
 [env]
 # SERVER
