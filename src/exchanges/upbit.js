@@ -61,14 +61,13 @@ class Upbit extends Exchange {
 
   formatTrade(trade) {
     const tradePrice = new Big(trade.trade_price)
-    const tradeSize = new Big(trade.trade_volume)
 
     return {
       exchange: this.id,
       pair: trade.code,
       timestamp: trade.trade_timestamp,
       price: tradePrice.times(this.KRW_USD).toNumber(),
-      size: tradeSize.times(this.KRW_USD).toNumber(),
+      size: trade.trade_volume,
       side: trade.ask_bid === 'ASK' ? 'sell' : 'buy'
     }
   }
