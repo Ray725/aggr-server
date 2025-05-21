@@ -72,7 +72,7 @@ class HYPERLIQUID extends Exchange {
   formatTrade(trade, pairCoin) {
     return {
       exchange: this.id,
-      pair: `${pairCoin.toUpperCase()}-USD`,
+      pair: `${pairCoin}-USD`,
       timestamp: trade.time,
       price: +trade.px,
       size: +trade.sz,
