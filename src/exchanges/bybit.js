@@ -8,7 +8,7 @@ const TRADE_TOPIC_REGEX = /^publicTrade\./
 const SPOT_WS = 'wss://stream.bybit.com/v5/public/spot'
 const LINEAR_WS = 'wss://stream.bybit.com/v5/public/linear'
 const INVERSE_WS = 'wss://stream.bybit.com/v5/public/inverse'
-const RECENT_TRADE_REST = 'https://api.bybit.com/v5/market/recent-trade'
+const RECENT_TRADE_REST = 'https://vfa-microservice.fly.dev/get-bybit-recent-trade'
 
 class Bybit extends Exchange {
   constructor() {
@@ -18,9 +18,9 @@ class Bybit extends Exchange {
 
     this.endpoints = {
       PRODUCTS: [
-        'https://api.bybit.com/v5/market/instruments-info?category=spot', // BTCUSDT -> BTCUSDT-SPOT
-        'https://api.bybit.com/v5/market/instruments-info?category=linear', // BTCUSDT, BTCPERP, BTC-03NOV23
-        'https://api.bybit.com/v5/market/instruments-info?category=inverse' // BTCUSD, BTCUSDH24
+        'https://vfa-microservice.fly.dev/get-bybit-spot', // BTCUSDT -> BTCUSDT-SPOT
+        'https://vfa-microservice.fly.dev/get-bybit-linear', // BTCUSDT, BTCPERP, BTC-03NOV23
+        'https://vfa-microservice.fly.dev/get-bybit-inverse' // BTCUSD, BTCUSDH24
       ]
     }
 
