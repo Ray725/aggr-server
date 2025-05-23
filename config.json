@@ -3753,7 +3753,8 @@
     "BITHUMB:KRW-PARTI",
     "BITHUMB:KRW-SXT",
     "BITHUMB:KRW-PROMPT",
-    "BITHUMB:KRW-SIGN"
+    "BITHUMB:KRW-SIGN",
+    "BYBIT:HYPEUSDT"
   ],
   "backupInterval": 5000,
   "collect": true,
