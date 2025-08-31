@@ -2,7 +2,8 @@
     "debug": false,
     "port": 3000,
     "pairs": [
-      "BYBIT:HYPEUSDT"
+      "BINANCE_FUTURES:wlfiusdt",
+      "HYPERLIQUID:WLFI-USD"
     ],
     "backupInterval": 5000,
     "collect": true,
