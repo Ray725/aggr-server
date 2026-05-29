@@ -4,14 +4,6 @@ node = "20.5.0"
 [tasks.run_influx]
 run = "sudo docker-compose -f docker/docker-compose.yml up influx"
 
-[tasks.monitor_influx]
-description = "One-shot InfluxDB health + data verification report"
-run = "node scripts/monitor-influx.js"
-
-[tasks.watch_influx]
-description = "Continuously monitor InfluxDB health every 60s"
-run = "node scripts/monitor-influx.js --watch=60"
-
 [env]
 # SERVER
 PORT=3000
