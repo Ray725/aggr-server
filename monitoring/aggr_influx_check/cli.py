@@ -216,7 +216,7 @@ def make_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--interval",
         type=int,
-        help="Seconds between checks when running as a loop (default 60, or $INTERVAL_SECONDS)",
+        help="Seconds between checks when running as a loop (default 600, or $INTERVAL_SECONDS)",
     )
     p.add_argument("--once", action="store_true", help="Run a single check and exit (default: loop forever)")
     return p
@@ -291,7 +291,7 @@ def main(argv: list[str] | None = None) -> int:
 
     interval = args.interval
     if interval is None:
-        interval = int(os.environ.get("INTERVAL_SECONDS", 60))
+        interval = int(os.environ.get("INTERVAL_SECONDS", 600))
     return run_loop(cfg, interval)
 
 
