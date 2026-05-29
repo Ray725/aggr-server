@@ -1,0 +1,18 @@
+[project]
+name = "aggr-influx-check"
+version = "0.1.0"
+description = "InfluxDB liveness + write-freshness check for aggr-server, with healthchecks.io pings."
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.27",
+]
+
+[project.scripts]
+check-influx = "aggr_influx_check.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["aggr_influx_check"]
