@@ -39,7 +39,7 @@ DEFAULTS = {
     "database": "significant_trades",
     "rp_prefix": "aggr_",
     "timeframe": "10s",
-    "stale_seconds": 60,
+    "stale_seconds": 300,
 }
 
 HC_DEFAULT_BASE = "https://hc-ping.com"
@@ -206,7 +206,7 @@ def make_parser() -> argparse.ArgumentParser:
     p.add_argument("--host", help="InfluxDB host (default: $AGGR_INFLUX_HOST / config.json / localhost)")
     p.add_argument("--port", type=int, help="InfluxDB port (default: 8086)")
     p.add_argument("--db", help="InfluxDB database (default: significant_trades)")
-    p.add_argument("--stale", type=int, help="Max seconds since last write before STALE (default 60)")
+    p.add_argument("--stale", type=int, help="Max seconds since last write before STALE (default 300)")
     p.add_argument(
         "--hc-url",
         help="Full healthchecks.io ping URL (e.g. https://hc-ping.com/<uuid>). "
