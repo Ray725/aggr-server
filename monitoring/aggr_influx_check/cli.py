@@ -44,7 +44,7 @@ DEFAULTS = {
 
 HC_DEFAULT_BASE = "https://hc-ping.com"
 
-INFLUX_TIMEOUT = 8.0
+INFLUX_TIMEOUT = 20.0
 HC_TIMEOUT = 5.0
 
 
@@ -168,10 +168,18 @@ def check_ping(client: httpx.Client, cfg: Config) -> tuple[bool, str]:
 
 def check_freshness(client: httpx.Client, cfg: Config) -> tuple[str, int | None, str]:
     """Returns (status, age_seconds, detail). status in {FRESH, STALE, NO_DATA, ERROR}."""
+    # Bound the scan window so InfluxDB doesn't sweep every shard in the
+    # measurement. Generous multiple of the stale threshold keeps the age
+    # detail informative when writes are lagging but not yet dead.
+    lookback_s = max(cfg.stale_seconds * 4, 1800)
     params = {
         "db": cfg.database,
         "epoch": "s",
-        "q": f"SELECT * FROM {cfg.fq_measurement} ORDER BY time DESC LIMIT 1",
+        "q": (
+            f"SELECT * FROM {cfg.fq_measurement} "
+            f"WHERE time > now() - {lookback_s}s "
+            f"ORDER BY time DESC LIMIT 1"
+        ),
     }
     try:
         r = client.get(f"{cfg.influx_base}/query", params=params, timeout=INFLUX_TIMEOUT)
