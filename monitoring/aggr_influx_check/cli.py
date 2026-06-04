@@ -39,7 +39,7 @@ DEFAULTS = {
     "database": "significant_trades",
     "rp_prefix": "aggr_",
     "timeframe": "10s",
-    "stale_seconds": 300,
+    "stale_seconds": 600,
 }
 
 HC_DEFAULT_BASE = "https://hc-ping.com"
