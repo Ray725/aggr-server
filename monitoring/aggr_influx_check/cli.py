@@ -7,7 +7,7 @@ with /start + (success|fail) pings.
 Configuration precedence (high to low):
   1. CLI flags
   2. Env vars (AGGR_INFLUX_HOST, AGGR_INFLUX_PORT, AGGR_INFLUX_DATABASE,
-     STALE_SECONDS, HEALTHCHECK_URL, HEALTHCHECK_UUID)
+     STALE_SECONDS, FAIL_AFTER, HEALTHCHECK_URL, HEALTHCHECK_UUID)
   3. config.json in the repo (influxHost, influxPort, influxDatabase,
      influxRetentionPrefix)
   4. Defaults that mirror src/config.js
@@ -15,6 +15,13 @@ Configuration precedence (high to low):
 The AGGR_ prefix on env vars is intentional: aggr-server's own INFLUX_HOST
 env var resolves to "aggr-influx" (the docker hostname) inside the container
 network, which is wrong when running this check from the host.
+
+Staleness is debounced: a stale/no-data/error result only reports /fail to
+healthchecks.io after --fail-after consecutive occurrences (default 2). Earlier
+occurrences send a success ping whose body is marked "suppressed", so transient
+stalls show up in the event history without firing a DOWN alert. An unreachable
+InfluxDB always fails immediately. Debouncing needs loop mode; --once has no
+state between runs and never suppresses.
 
 Exit codes: 0 healthy, 1 stale / no data, 2 InfluxDB unreachable.
 """
@@ -26,7 +33,7 @@ import json
 import os
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -40,6 +47,7 @@ DEFAULTS = {
     "rp_prefix": "aggr_",
     "timeframe": "10s",
     "stale_seconds": 600,
+    "fail_after": 2,
 }
 
 HC_DEFAULT_BASE = "https://hc-ping.com"
@@ -56,6 +64,7 @@ class Config:
     rp: str            # e.g. "aggr_10s"
     measurement: str   # e.g. "trades_10s"
     stale_seconds: int
+    fail_after: int    # consecutive stale results before reporting /fail
     hc_url: str | None
     no_ping: bool
 
@@ -131,6 +140,7 @@ def resolve_config(args: argparse.Namespace) -> Config:
     rp_prefix = pick(None, None, "influxRetentionPrefix", DEFAULTS["rp_prefix"])
     timeframe = DEFAULTS["timeframe"]
     stale = int(pick(args.stale, "STALE_SECONDS", None, DEFAULTS["stale_seconds"]))
+    fail_after = max(1, int(pick(args.fail_after, "FAIL_AFTER", None, DEFAULTS["fail_after"])))
 
     return Config(
         host=str(host),
@@ -139,6 +149,7 @@ def resolve_config(args: argparse.Namespace) -> Config:
         rp=f"{rp_prefix}{timeframe}",
         measurement=f"trades_{timeframe}",
         stale_seconds=stale,
+        fail_after=fail_after,
         hc_url=resolve_hc_url(args.hc_url),
         no_ping=args.no_ping,
     )
@@ -214,7 +225,14 @@ def make_parser() -> argparse.ArgumentParser:
     p.add_argument("--host", help="InfluxDB host (default: $AGGR_INFLUX_HOST / config.json / localhost)")
     p.add_argument("--port", type=int, help="InfluxDB port (default: 8086)")
     p.add_argument("--db", help="InfluxDB database (default: significant_trades)")
-    p.add_argument("--stale", type=int, help="Max seconds since last write before STALE (default 300)")
+    p.add_argument("--stale", type=int, help="Max seconds since last write before STALE (default 600)")
+    p.add_argument(
+        "--fail-after",
+        type=int,
+        help="Consecutive stale/no-data/error results before reporting /fail (default 2, or "
+        "$FAIL_AFTER). Earlier results ping success with a 'suppressed' body. Loop mode only; "
+        "--once always reports immediately. Unreachable InfluxDB always fails immediately.",
+    )
     p.add_argument(
         "--hc-url",
         help="Full healthchecks.io ping URL (e.g. https://hc-ping.com/<uuid>). "
@@ -230,7 +248,11 @@ def make_parser() -> argparse.ArgumentParser:
     return p
 
 
-def run_once(client: httpx.Client, cfg: Config) -> int:
+def run_once(client: httpx.Client, cfg: Config, prior_failures: int = 0) -> int:
+    """One check cycle. `prior_failures` is the number of consecutive non-FRESH
+    results immediately before this run; a non-FRESH result here only reports
+    /fail once the streak reaches cfg.fail_after, otherwise it sends a success
+    ping with a "suppressed" body so the stall is logged but doesn't alert."""
     ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     header = (
         f"== InfluxDB check @ {ts}: {cfg.influx_base}/{cfg.database}  "
@@ -258,7 +280,18 @@ def run_once(client: httpx.Client, cfg: Config) -> int:
         hc_ping(cfg, "", body=report)
         return 0
 
-    report = "\n".join(lines) + f"\noverall: FAIL ({status.lower()})"
+    failures = prior_failures + 1
+    if failures < cfg.fail_after:
+        report = "\n".join(lines) + (
+            f"\noverall: {status} (suppressed {failures}/{cfg.fail_after}, "
+            f"pinging success — will FAIL after {cfg.fail_after} consecutive)"
+        )
+        print(report, flush=True)
+        hc_ping(cfg, "", body=report)
+        return 1
+
+    streak = f", {failures} consecutive" if failures > 1 else ""
+    report = "\n".join(lines) + f"\noverall: FAIL ({status.lower()}{streak})"
     print(report, flush=True)
     hc_ping(cfg, "/fail", body=report)
     return 1
@@ -271,11 +304,13 @@ def run_loop(cfg: Config, interval: int) -> int:
     healthchecks.io schedule stays intact."""
     print(f"[loop] running check every {interval}s (Ctrl-C to stop)", flush=True)
     next_run = time.monotonic()
+    consecutive_failures = 0
     try:
         with httpx.Client() as client:
             while True:
                 try:
-                    run_once(client, cfg)
+                    rc = run_once(client, cfg, consecutive_failures)
+                    consecutive_failures = 0 if rc == 0 else consecutive_failures + 1
                 except Exception as e:  # noqa: BLE001 — keep the daemon alive
                     sys.stderr.write(f"[loop] iteration error: {e!r}\n")
                 next_run += interval
@@ -294,6 +329,8 @@ def main(argv: list[str] | None = None) -> int:
     cfg = resolve_config(args)
 
     if args.once:
+        # No state between --once runs, so debouncing can't apply.
+        cfg = replace(cfg, fail_after=1)
         with httpx.Client() as client:
             return run_once(client, cfg)
 
