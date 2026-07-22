@@ -99,7 +99,9 @@ runtime limits are stale, and verifies the final state. It preserves the
 mounted database volume and is safe to run repeatedly. For non-interactive
 automation, use `mise run influx_clean_sweep -- --yes`. Run it during a short
 maintenance window because applying stale container limits briefly restarts
-InfluxDB. The command requires the modern `docker compose` plugin.
+InfluxDB. The command requires the modern `docker compose` plugin and
+automatically uses `sudo` for Docker commands when the current user cannot
+access the Docker daemon directly.
 
 ## Installation with Docker
 

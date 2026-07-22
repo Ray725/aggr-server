@@ -84,11 +84,19 @@ done
 [[ -f "${COMPOSE_ENV_FILE}" ]] || die "compose env file not found: ${COMPOSE_ENV_FILE}"
 command -v docker >/dev/null 2>&1 || die "docker is not installed"
 command -v node >/dev/null 2>&1 || die "node is required to validate the Compose data mount"
-docker compose version >/dev/null 2>&1 || die "the Docker Compose plugin is required"
-docker info >/dev/null 2>&1 || die "cannot connect to the Docker daemon"
+
+DOCKER=(docker)
+if ! "${DOCKER[@]}" info >/dev/null 2>&1; then
+  command -v sudo >/dev/null 2>&1 || die "cannot connect to the Docker daemon and sudo is unavailable"
+  log "Direct Docker access is unavailable; requesting sudo for Docker commands"
+  DOCKER=(sudo docker)
+  "${DOCKER[@]}" info >/dev/null || die "cannot connect to the Docker daemon, including through sudo"
+fi
+readonly -a DOCKER
+"${DOCKER[@]}" compose version >/dev/null 2>&1 || die "the Docker Compose plugin is required"
 
 readonly -a COMPOSE=(
-  docker compose
+  "${DOCKER[@]}" compose
   --project-directory "${REPO_ROOT}/docker"
   --env-file "${COMPOSE_ENV_FILE}"
   -f "${COMPOSE_FILE}"
@@ -134,15 +142,15 @@ if command -v flock >/dev/null 2>&1; then
 fi
 
 container_exists() {
-  docker inspect "${INFLUX_CONTAINER}" >/dev/null 2>&1
+  "${DOCKER[@]}" inspect "${INFLUX_CONTAINER}" >/dev/null 2>&1
 }
 
 container_running() {
-  [[ "$(docker inspect --format '{{.State.Running}}' "${INFLUX_CONTAINER}" 2>/dev/null)" == 'true' ]]
+  [[ "$("${DOCKER[@]}" inspect --format '{{.State.Running}}' "${INFLUX_CONTAINER}" 2>/dev/null)" == 'true' ]]
 }
 
 influx_ready() {
-  docker exec "${INFLUX_CONTAINER}" influx -execute 'SHOW DATABASES' >/dev/null 2>&1
+  "${DOCKER[@]}" exec "${INFLUX_CONTAINER}" influx -execute 'SHOW DATABASES' >/dev/null 2>&1
 }
 
 wait_for_influx() {
@@ -160,7 +168,7 @@ wait_for_influx() {
 }
 
 influx_query() {
-  docker exec "${INFLUX_CONTAINER}" influx -format csv -execute "$1"
+  "${DOCKER[@]}" exec "${INFLUX_CONTAINER}" influx -format csv -execute "$1"
 }
 
 policy_exists() {
@@ -357,7 +365,7 @@ verify_no_expired_shards() {
 }
 
 container_volume_source() {
-  docker inspect --format \
+  "${DOCKER[@]}" inspect --format \
     '{{range .Mounts}}{{if eq .Destination "/var/lib/influxdb"}}{{.Source}}{{end}}{{end}}' \
     "${INFLUX_CONTAINER}"
 }
@@ -378,12 +386,12 @@ runtime_matches_profile() {
   local container_env
   local expected_env
 
-  runtime_limits="$(docker inspect --format \
+  runtime_limits="$("${DOCKER[@]}" inspect --format \
     '{{.HostConfig.Memory}} {{.HostConfig.MemorySwap}}' \
     "${INFLUX_CONTAINER}" 2>/dev/null)" || return 1
   [[ "${runtime_limits}" == "${EXPECTED_MEMORY_BYTES} ${EXPECTED_MEMORY_SWAP_BYTES}" ]] || return 1
 
-  container_env="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' \
+  container_env="$("${DOCKER[@]}" inspect --format '{{range .Config.Env}}{{println .}}{{end}}' \
     "${INFLUX_CONTAINER}")"
   for expected_env in "${EXPECTED_INFLUX_ENV[@]}"; do
     grep -Fqx "${expected_env}" <<<"${container_env}" || return 1

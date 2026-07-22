@@ -62,6 +62,7 @@ test('clean sweep converges once and is safe to repeat', t => {
   const fixtureDir = mkdtempSync(join(tmpdir(), 'aggr-influx-sweep-'))
   t.after(() => rmSync(fixtureDir, { recursive: true, force: true }))
   const fakeDocker = join(fixtureDir, 'docker')
+  const fakeSudo = join(fixtureDir, 'sudo')
   const commandLog = join(fixtureDir, 'docker.log')
   const containerState = join(fixtureDir, 'container-running')
   const runtimeProfileState = join(fixtureDir, 'runtime-profile-applied')
@@ -80,6 +81,9 @@ if [[ "$1" == 'compose' && "$2" == 'version' ]]; then
 fi
 
 if [[ "$1" == 'info' ]]; then
+  if [[ "__DOLLAR__{FAKE_REQUIRE_SUDO:-}" == '1' && "__DOLLAR__{FAKE_UNDER_SUDO:-}" != '1' ]]; then
+    exit 1
+  fi
   exit 0
 fi
 
@@ -199,6 +203,14 @@ exit 1
 `.replaceAll('__DOLLAR__', '$'),
   )
   chmodSync(fakeDocker, 0o755)
+  writeFileSync(
+    fakeSudo,
+    String.raw`#!/usr/bin/env bash
+set -euo pipefail
+FAKE_UNDER_SUDO=1 exec "$@"
+`
+  )
+  chmodSync(fakeSudo, 0o755)
   writeFileSync(containerState, '')
 
   const environment = {
@@ -206,6 +218,7 @@ exit 1
     PATH: `${fixtureDir}:${process.env.PATH}`,
     TMPDIR: fixtureDir,
     FAKE_DOCKER_LOG: commandLog,
+    FAKE_REQUIRE_SUDO: '1',
     FAKE_CONTAINER_STATE: containerState,
     FAKE_RUNTIME_PROFILE_STATE: runtimeProfileState,
     FAKE_DROPPED_STATE: droppedState,
@@ -218,6 +231,7 @@ exit 1
     env: environment,
   })
   assert.equal(firstRun.status, 0, firstRun.stderr || firstRun.stdout)
+  assert.match(firstRun.stdout, /requesting sudo for Docker commands/)
 
   const firstLog = readFileSync(commandLog, 'utf8')
   assert.match(firstLog, /up -d --no-deps --force-recreate influx/)
