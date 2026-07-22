@@ -218,10 +218,16 @@ class InfluxStorage {
 
     const timeframes = [config.influxTimeframe].concat(config.influxResampleTo)
     this.influxTimeframeRetentionDuration =
-      config.influxTimeframe * config.influxRetentionPerTimeframe
+      Math.min(
+        config.influxTimeframe * config.influxRetentionPerTimeframe,
+        config.influxRetentionMaxDuration
+      )
 
     for (let timeframe of timeframes) {
-      const rpDuration = timeframe * config.influxRetentionPerTimeframe
+      const rpDuration = Math.min(
+        timeframe * config.influxRetentionPerTimeframe,
+        config.influxRetentionMaxDuration
+      )
       const rpDurationLitteral = getHms(rpDuration).replace(/[\s,]/g, '')
       const rpName = config.influxRetentionPrefix + getHms(timeframe)
 

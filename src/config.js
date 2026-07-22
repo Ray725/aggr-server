@@ -139,6 +139,9 @@ const defaultConfig = {
   // number of bars to retain within influx db per timeframe
   influxRetentionPerTimeframe: 5000,
 
+  // never retain a timeframe for longer than this (default 30 days)
+  influxRetentionMaxDuration: 1000 * 60 * 60 * 24 * 30,
+
   // prefix aggr retention policies with this (unused rp using that prefix get automaticaly removed)
   influxRetentionPrefix: 'aggr_',
 

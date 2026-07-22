@@ -4,6 +4,10 @@ node = "20.5.0"
 [tasks.run_influx]
 run = "sudo docker-compose -f docker/docker-compose.yml up influx"
 
+[tasks.influx_clean_sweep]
+description = "Apply bounded InfluxDB retention, purge expired shards, and reconcile the container"
+run = "./scripts/influx/clean-sweep.sh"
+
 [env]
 # SERVER
 PORT=3000

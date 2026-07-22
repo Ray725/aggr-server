@@ -76,6 +76,31 @@ To start using InfluxDB, set `storage=[ 'influx' ]` in `config.json`. You can al
 
 Please note that InfluxDB auth is disabled, and connecting to a remote InfluxDB has not yet been tested.
 
+### InfluxDB memory and retention maintenance
+
+The production Docker service limits InfluxDB to 8 GiB of RAM with no swap and
+uses a disk-backed TSI index for new shards. Trade retention-policy durations
+range from about 14 hours for 10-second bars to a 30-day cap; alert history uses
+a 30-day policy. InfluxDB expires whole shards, so points can remain for up to
+one shard duration beyond the configured policy duration.
+
+After deploying these settings to an existing database, run the clean sweep:
+
+```bash
+mise run influx_clean_sweep
+```
+
+Back up the database first if data older than the configured windows may still
+be needed; deleted shards cannot be recovered from the live volume.
+
+The command asks for confirmation, reconciles the existing retention policies,
+drops only wholly expired shards, recreates the InfluxDB container when its
+runtime limits are stale, and verifies the final state. It preserves the
+mounted database volume and is safe to run repeatedly. For non-interactive
+automation, use `mise run influx_clean_sweep -- --yes`. Run it during a short
+maintenance window because applying stale container limits briefly restarts
+InfluxDB. The command requires the modern `docker compose` plugin.
+
 ## Installation with Docker
 
 To install the application with Docker, follow these steps:

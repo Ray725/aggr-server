@@ -1,5 +1,3 @@
-version: '3.7'
-
 name: aggr-server
 
 networks:
@@ -36,10 +34,20 @@ services:
   influx:
     container_name: aggr-influx
     image: influxdb:1.8.10
+    mem_limit: 8g
+    mem_reservation: 4g
+    memswap_limit: 8g
     ports:
       - ${INFLUX_PORT}:${INFLUX_PORT}
     volumes:
       - ./${FILES_LOCATION}/influxdb:/var/lib/influxdb/
+    environment:
+      INFLUXDB_DATA_INDEX_VERSION: "tsi1"
+      INFLUXDB_DATA_CACHE_MAX_MEMORY_SIZE: "256m"
+      INFLUXDB_DATA_CACHE_SNAPSHOT_MEMORY_SIZE: "32m"
+      INFLUXDB_DATA_CACHE_SNAPSHOT_WRITE_COLD_DURATION: "5m"
+      INFLUXDB_DATA_MAX_CONCURRENT_COMPACTIONS: "1"
+      INFLUXDB_RETENTION_CHECK_INTERVAL: "10m"
     networks:
       - backend
     restart: always
@@ -47,10 +55,10 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 8192M
+          memory: 8g
         reservations:
           cpus: '0.6'
-          memory: 4096M
+          memory: 4g
 
   chronograf:
     container_name: aggr-chronograf
